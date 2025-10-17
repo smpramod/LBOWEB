@@ -1594,6 +1594,23 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    function showSkeletons() {
+            gridContainer.innerHTML = ''; // Clear the grid
+            for (let i = 0; i < 6; i++) { // Show 6 skeleton cards
+                const skeleton = document.createElement('div');
+                skeleton.className = 'skeleton-card';
+                skeleton.innerHTML = `
+                    <div class="skeleton-image"></div>
+                    <div class="skeleton-text"></div>
+                    <div class="skeleton-subtext"></div>
+                `;
+                gridContainer.appendChild(skeleton);
+            }
+        }
+
+        showSkeletons(); // Show skeletons immediately when the script runs
+
+
     // --- Main Fetch and Build Logic ---
     // This is the first thing that runs to get the profile data and build the grid
     fetch(profilesApiUrl)
