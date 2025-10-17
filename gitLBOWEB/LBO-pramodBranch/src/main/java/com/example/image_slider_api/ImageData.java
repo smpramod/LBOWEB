@@ -16,7 +16,7 @@ public class ImageData {
     // **THE FIX IS HERE**: This is a "no-argument constructor".
     // It's an empty constructor that Firebase needs to create an initial instance of the object
     // before it can start filling in the data from your database. This is a common requirement.
-    public ImageData() {}
+    public ImageData() {}                //this is the place where i got stucked more than 2 days 
 
     // This is your existing constructor, used for creating objects manually if needed.
     public ImageData(String id, String url, String name, String description, String mobile, String longDescription, Rating rating) {
