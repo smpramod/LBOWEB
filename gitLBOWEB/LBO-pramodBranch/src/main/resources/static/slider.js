@@ -1399,6 +1399,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const menuCloseBtn = document.getElementById('menu-close-btn'); // The '×' button to close the menu
     const menuItems = document.querySelectorAll('.menu-item'); // All the links inside the menu (About, Help, etc.)
     const bannerContainer = document.getElementById('banner-container'); // The container for the image slideshow
+    const pauseOverlay = document.getElementById('pause-overlay');
+
 
     // Content & Modal elements
     const contentTitle = document.getElementById('content-title'); // The title in the content popup (e.g., "About Us")
@@ -1426,11 +1428,17 @@ document.addEventListener("DOMContentLoaded", function() {
     const notificationsApiUrl = 'http://localhost:8080/api/notifications';
     const bannerApiUrl = 'http://localhost:8080/api/banners';
 
+    const filterContainer = document.getElementById('filter-container');
+    const sortSelect = document.getElementById('sort-select');
+
     // Global variables to store data fetched from the API
     let allProfilesData = []; // Will hold the array of all 20 profile objects
     let currentProfileId = null; // Will store the ID of the profile being viewed (e.g., "image1")
     let bannerImages = []; // Will hold the array of banner image objects
     let currentBannerIndex = 0; // Tracks the currently visible banner slide
+
+    let slideshowInterval = null; // This will hold the ID of our timer
+    let isSlideshowPaused = false;
 
     // --- SLIDER MENU & CONTENT PAGE LOGIC ---
     // Dummy data for the menu pages
@@ -1451,6 +1459,47 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     function closeContentPage() { contentView.style.display = 'none'; } // Hides the content popup
+
+    // --- NEW: Central Function to Update the Grid ---
+        // This function will be called whenever a filter or sort option is changed.
+        function updateGrid() {
+            // Step 1: Get the current active filter (e.g., "Developer" or "all").
+            const activeFilterBtn = document.querySelector('.filter-btn.active');
+            const filterValue = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
+
+            // Step 2: Get the current sort value (e.g., "rating-desc").
+            const sortBy = sortSelect.value;
+
+            // Step 3: Filter the data first.
+            let processedData;
+            if (filterValue === 'all') {
+                processedData = allProfilesData; // If "All" is selected, use the full dataset.
+            } else {
+                // Otherwise, get only the profiles that match the description.
+                processedData = allProfilesData.filter(profile => profile.description === filterValue);
+            }
+
+            // Step 4: Sort the already-filtered data.
+            // We sort a copy (...) to avoid permanently changing the original order.
+            const sortedData = [...processedData];
+            switch (sortBy) {
+                case 'rating-desc':
+                    // Sort by rating, highest first (b - a).
+                    sortedData.sort((a, b) => b.rating.average - a.rating.average);
+                    break;
+                case 'visits-desc':
+                    // Sort by visits, highest first (b - a).
+                    sortedData.sort((a, b) => b.visits - a.visits);
+                    break;
+                case 'name-asc':
+                    // Sort by name alphabetically (A-Z). localeCompare is for strings.
+                    sortedData.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+            }
+
+            // Step 5: Render the final, processed data to the grid.
+            renderGrid(sortedData);
+        }
 
     // --- View Switching & Profile Visits ---
     function showProfilePage(profileIndex) { // Function to show the detailed profile view
@@ -1508,16 +1557,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // --- BANNER SLIDESHOW LOGIC ---
-    function fetchBanners() { // Gets banner image URLs from the banner API
-        fetch(bannerApiUrl).then(response => response.json()).then(data => {
-            bannerImages = data; // Store the banner data
-            renderBanners(); // Create the banner HTML elements
-            startSlideshow(); // Start the automatic rotation
-        }).catch(error => console.error('Error fetching banners:', error));
-    }
+
+    function fetchBanners() {       // Gets banner image URLs from the banner API
+            fetch(bannerApiUrl).then(response => response.json()).then(data => {
+                bannerImages = data;    // Store the banner data
+                renderBanners();    // Create the banner HTML elements
+                startSlideshow(); // Start the slideshow after rendering
+            }).catch(error => console.error('Error fetching banners:', error));
+        }
 
     function renderBanners() { // Creates the <img> tags for the banner
-        bannerContainer.innerHTML = '';
+        bannerContainer.innerHTML = '<div id="pause-overlay"><span id="play-icon">▶</span></div>'; // Re-add overlay
         bannerImages.forEach((banner, index) => {
             const img = document.createElement('img');
             img.src = banner.imageUrl;
@@ -1527,7 +1577,17 @@ document.addEventListener("DOMContentLoaded", function() {
             bannerContainer.appendChild(img);
         });
     }
-    function startSlideshow() { // Rotates the 'active' class every 3 seconds
+
+    function nextSlide() {
+            const slides = document.querySelectorAll('.banner-slide');
+            if (slides.length === 0) return;
+
+            slides[currentBannerIndex].classList.remove('active');
+            currentBannerIndex = (currentBannerIndex + 1) % slides.length;
+            slides[currentBannerIndex].classList.add('active');
+        }
+
+    /*function startSlideshow() { // Rotates the 'active' class every 3 seconds
         setInterval(() => {
             const slides = document.querySelectorAll('.banner-slide');
             if (slides.length === 0) return;
@@ -1536,9 +1596,35 @@ document.addEventListener("DOMContentLoaded", function() {
             slides[currentBannerIndex].classList.add('active');
         }, 3000);
     }
+*/
+    function startSlideshow() {
+            // Clear any old interval to prevent multiple timers running
+            if (slideshowInterval) clearInterval(slideshowInterval);
+
+            // Start a new interval and store its ID
+            // The slideshow will advance every 3000 milliseconds (3 seconds)
+            slideshowInterval = setInterval(nextSlide, 3000);
+        }
+
+        // This is the new function that will be called on click
+            function toggleSlideshow() {
+                isSlideshowPaused = !isSlideshowPaused; // Flip the state
+
+                if (isSlideshowPaused) {
+                    // If we are pausing the slideshow
+                    clearInterval(slideshowInterval); // Stop the timer
+                    document.getElementById('pause-overlay').classList.add('visible'); // Show the play icon
+                } else {
+                    // If we are resuming the slideshow
+                    document.getElementById('pause-overlay').classList.remove('visible'); // Hide the play icon
+                    nextSlide(); // Immediately go to the next slide for a responsive feel
+                    startSlideshow(); // Restart the automatic timer
+                }
+            }
+
 
     // --- Filtering and Suggestions Logic ---
-    function filterProfiles() { // Hides or shows profile cards based on search input
+    /*function filterProfiles() { // Hides or shows profile cards based on search input
         const searchTerm = searchInput.value.toLowerCase();
         let matchesFound = 0;
         gridContainer.querySelectorAll('.profile-card').forEach((card, index) => {
@@ -1551,7 +1637,44 @@ document.addEventListener("DOMContentLoaded", function() {
         // Fix for single search result looking too wide
         if (matchesFound === 1) { gridContainer.style.gridTemplateColumns = '300px'; gridContainer.style.justifyContent = 'center'; }
         else { gridContainer.style.gridTemplateColumns = ''; gridContainer.style.justifyContent = ''; }
-    }
+    }*/
+    // --- Filtering and Suggestions Logic ---
+        function filterProfiles() {
+            // Get the current text from the search bar, in lowercase.
+            const searchTerm = searchInput.value.toLowerCase();
+            // A counter to track how many profiles match the search.
+            let matchesFound = 0;
+            // Get all the profile card elements currently on the page.
+            gridContainer.querySelectorAll('.profile-card').forEach((card, index) => {
+                // For each card, get its corresponding data object.
+                const profile = allProfilesData[index];
+                // Check if the profile's name or description includes the search term.
+                const isMatch = profile.name.toLowerCase().includes(searchTerm) || profile.description.toLowerCase().includes(searchTerm);
+
+                // Use 'toggle' to add the 'hidden' class if it's NOT a match, and remove it if it IS a match.
+                card.classList.toggle('hidden', !isMatch);
+
+                // If it's a match, increment our counter.
+                if (isMatch) {
+                    matchesFound++;
+                }
+            });
+            // Show the "no match" message only if the counter is zero.
+            noMatchMessage.style.display = matchesFound > 0 ? 'none' : 'block';
+            // ** THE FIX IS HERE **
+            // Check if exactly one profile card is visible.
+            if (matchesFound === 1) {
+                // If yes, temporarily override the grid's columns to be a single, fixed-width column.
+                gridContainer.style.gridTemplateColumns = '300px';
+                // And center that single column within the available space.
+                gridContainer.style.justifyContent = 'center';
+            } else {
+                // If there are zero or more than one results, clear our temporary styles.
+                gridContainer.style.gridTemplateColumns = ''; // This lets the grid revert to the responsive style in your CSS.
+                gridContainer.style.justifyContent = '';      // Reverts to the default alignment.
+            }
+        }
+
     function showSuggestions() { // Shows the autocomplete dropdown as the user types
         const searchTerm = searchInput.value.toLowerCase();
         suggestionsContainer.innerHTML = '';
@@ -1610,10 +1733,79 @@ document.addEventListener("DOMContentLoaded", function() {
 
         showSkeletons(); // Show skeletons immediately when the script runs
 
+    //For filter option
+   /* function renderGrid(profilesToDisplay) {
+            // Clear any existing cards from the grid.
+            gridContainer.innerHTML = '';
+            // Check if the array of profiles is empty.
+            if (profilesToDisplay.length === 0) {
+                // If it's empty, show the "no match" message.
+                noMatchMessage.textContent = "No profiles match the current filter.";
+                noMatchMessage.style.display = 'block';
+                return; // Stop the function here.
+            }
+            // If there are profiles, hide the "no match" message.
+            noMatchMessage.style.display = 'none';
+            // Loop through each profile in the provided array.
+            profilesToDisplay.forEach(item => {
+                // Find the original index of the item to ensure showProfilePage works correctly.
+                const originalIndex = allProfilesData.findIndex(p => p.id === item.id);
+                const card = document.createElement('div');
+                card.className = 'profile-card';
+                card.innerHTML = `<div class="image-wrapper"><img src="${item.url}" alt="${item.name}"></div><div class="details-wrapper"><div class="person-name">${item.name}</div><div class="person-description">${item.description}</div></div>`;
+                // When a card is clicked, open the detail page using its original index.
+                card.addEventListener('click', () => showProfilePage(originalIndex));
+                gridContainer.appendChild(card);
+            });
+        }*/
+        // --- Grid Rendering Function ---
+            // This function takes an array of profile objects and builds the HTML for the grid.
+            function renderGrid(profilesToDisplay) {
+                // Clear any existing cards from the grid.
+                gridContainer.innerHTML = '';
+
+                // ** THE FIX IS HERE **
+                // Check if exactly one profile card will be displayed.
+                if (profilesToDisplay.length === 1) {
+                    // If yes, temporarily override the grid's columns to be a single, fixed-width column.
+                    gridContainer.style.gridTemplateColumns = '300px';
+                    // And center that single column within the available space.
+                    gridContainer.style.justifyContent = 'center';
+                } else {
+                    // If there are zero or more than one results, clear our temporary styles.
+                    gridContainer.style.gridTemplateColumns = ''; // This lets the grid revert to the responsive style in your CSS.
+                    gridContainer.style.justifyContent = '';      // Reverts to the default alignment.
+                }
+
+                // Check if the array of profiles is empty.
+                if (profilesToDisplay.length === 0) {
+                    // If it's empty, show the "no match" message.
+                    noMatchMessage.textContent = "No profiles match the current filter.";
+                    noMatchMessage.style.display = 'block';
+                    return; // Stop the function here.
+                }
+
+                // If there are profiles, hide the "no match" message.
+                noMatchMessage.style.display = 'none';
+
+                // Loop through each profile in the provided array.
+                profilesToDisplay.forEach(item => {
+                    // Find the original index of the item to ensure showProfilePage works correctly.
+                    const originalIndex = allProfilesData.findIndex(p => p.id === item.id);
+                    const card = document.createElement('div');
+                    card.className = 'profile-card';
+                    card.innerHTML = `<div class="image-wrapper"><img src="${item.url}" alt="${item.name}"></div><div class="details-wrapper"><div class="person-name">${item.name}</div><div class="person-description">${item.description}</div></div>`;
+                    // When a card is clicked, open the detail page using its original index.
+                    card.addEventListener('click', () => showProfilePage(originalIndex));
+                    gridContainer.appendChild(card);
+                });
+            }
+        // NEW: Add a listener for the filter buttons
+
 
     // --- Main Fetch and Build Logic ---
     // This is the first thing that runs to get the profile data and build the grid
-    fetch(profilesApiUrl)
+    /*fetch(profilesApiUrl)
         .then(response => { if (!response.ok) throw new Error(`API Error: Server responded with status ${response.status}`); return response.json(); })
         .then(imageData => {
             allProfilesData = imageData; // Store the fetched data in our global variable
@@ -1633,12 +1825,60 @@ document.addEventListener("DOMContentLoaded", function() {
             // Display a user-friendly error message on the page.
             noMatchMessage.textContent = `Error: Could not load profiles. Please ensure the backend server is running. (${error.message})`;
             noMatchMessage.style.display = 'block';
+        });*/
+
+        fetch(profilesApiUrl)
+                .then(response => { if (!response.ok) throw new Error(`API Error: ${response.status}`); return response.json(); })
+                .then(imageData => {
+                    allProfilesData = imageData; // Store all profile data in our global variable.
+                    renderGrid(allProfilesData); // Use the new render function to display all profiles initially.
+                }).catch(error => {
+                    console.error('Failed to fetch profiles:', error);
+                    gridContainer.innerHTML = ''; // Clear skeletons on error
+                    noMatchMessage.textContent = `Error: Could not load profiles. Please ensure the backend is running.`;
+                    noMatchMessage.style.display = 'block';
+                });
+
+      /*filterContainer.addEventListener('click', (event) => {
+                     // Check if the clicked element is actually a button.
+                     if (event.target.tagName === 'BUTTON') {
+                         // First, remove the 'active' class from all filter buttons.
+                         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                         // Then, add the 'active' class to the specific button that was clicked.
+                         event.target.classList.add('active');
+
+                         // Get the category to filter by from the button's 'data-filter' attribute.
+                         const filterValue = event.target.dataset.filter;
+
+                         // If the filter is 'all', show all profiles.
+                         if (filterValue === 'all') {
+                             renderGrid(allProfilesData);
+                         } else {
+                             // Otherwise, filter the main data array to get only the matching profiles.
+                             const filteredProfiles = allProfilesData.filter(profile => profile.description === filterValue);
+                             // Render the grid with only the filtered profiles.
+                             renderGrid(filteredProfiles);
+                         }
+                     }
+                 });*/
+
+
+    filterContainer.addEventListener('click', (event) => {
+            if (event.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                updateGrid(); // Call the central update function
+            }
         });
 
     // --- Attach All Event Listeners ---
     // This section connects all our functions to the buttons and inputs
     backButton.addEventListener('click', showGridView);
-    searchInput.addEventListener('input', () => { showSuggestions(); filterProfiles(); });
+    searchInput.addEventListener('input', () => {
+            showSuggestions();
+            filterProfiles(); // Keep live filtering as you type
+        });
+
     notificationBellBtn.addEventListener('click', () => notificationView.style.display = 'flex');
     notificationBackBtn.addEventListener('click', () => notificationView.style.display = 'none');
     document.addEventListener('click', (event) => { if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) { suggestionsContainer.style.display = 'none'; } });
@@ -1646,10 +1886,16 @@ document.addEventListener("DOMContentLoaded", function() {
     menuCloseBtn.addEventListener('click', closeMenu);
     contentCloseBtn.addEventListener('click', closeContentPage);
     menuItems.forEach(item => { item.addEventListener('click', (e) => { e.preventDefault(); showContentPage(e.target.dataset.page); }); });
-    modalCloseBtn.addEventListener('click', () => imageModal.style.display = 'none');
 
+    // NEW: Add an event listener for the sort dropdown.
+    sortSelect.addEventListener('change', updateGrid); // Call the central update function on change
     // --- Initial Load ---
     // These functions run once when the page first loads
+    modalCloseBtn.addEventListener('click', () => imageModal.style.display = 'none');
+
+        // NEW: Add a click listener to the entire banner container
+        // This will handle clicks on both the images and the pause overlay
+    bannerContainer.addEventListener('click', toggleSlideshow);
     fetchNotifications();
     fetchBanners();
 });
