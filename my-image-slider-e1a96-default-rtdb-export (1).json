@@ -1,0 +1,184 @@
+{
+  "images": {
+    "image1": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-04-11-06-30-90_40deb401b9ffe8e1df2f1cc5ba480b12.jpg?alt=media&token=ccccc4f5-3225-4d16-85fc-b71f32505c9d",
+      "name": "Priya Sharma",
+      "description": "Developer",
+      "mobile": "+91 98765 43210",
+      "longDescription": "A skilled developer focused on creating efficient and scalable backend systems.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image2": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-13-11-58-39-39_f9ee0578fe1cc94de7482bd41accb329.jpg?alt=media&token=6878b445-cc01-49ec-a4bb-b772fa32b334",
+      "name": "Rohan Verma",
+      "description": "Designer",
+      "mobile": "+91 99887 76655",
+      "longDescription": "A creative UI/UX designer with a passion for user-centered design principles.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image3": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-13-18-08-23-69_f9ee0578fe1cc94de7482bd41accb329.jpg?alt=media&token=84d5516a-9f26-416a-8671-a640617a73e6",
+      "name": "Anjali Gupta",
+      "description": "Engineer",
+      "mobile": "+91 91234 56789",
+      "longDescription": "An experienced software engineer specializing in frontend frameworks and performance.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image4": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-13-19-00-44-72_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=897ba4de-7a90-4b38-95b7-daead23627e2",
+      "name": "Vikram Singh",
+      "description": "Architect",
+      "mobile": "+91 88776 65544",
+      "longDescription": "Solution architect focused on building robust and scalable cloud infrastructure.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image5": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-14-15-33-38-13_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=5c37e2fd-e0ab-4d6f-85a3-925885b329d1",
+      "name": "Meera Patel",
+      "description": "Consultant",
+      "mobile": "+91 77665 54433",
+      "longDescription": "A business consultant helping companies improve their digital transformation strategies.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image6": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-20-00-54-12-25_92460851df6f172a4592fca41cc2d2e6.jpg?alt=media&token=3d316c08-04d3-4be8-81bc-e715c84514b7",
+      "name": "Arjun Reddy",
+      "description": "Analyst",
+      "mobile": "+91 89898 98989",
+      "longDescription": "Data analyst with expertise in market trends and business intelligence.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image7": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-20-00-54-15-71_92460851df6f172a4592fca41cc2d2e6.jpg?alt=media&token=4c017416-533d-4d20-8eec-f2fd255e74ff",
+      "name": "Sunita Desai",
+      "description": "Manager",
+      "mobile": "+91 98100 98100",
+      "longDescription": "Project manager with a track record of delivering complex projects on time.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image8": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-21-13-23-57-08_92460851df6f172a4592fca41cc2d2e6.jpg?alt=media&token=81d5b695-6645-4da4-8491-5509ea9ee80d",
+      "name": "Rahul Kumar",
+      "description": "Doctor",
+      "mobile": "+91 99900 01122",
+      "longDescription": "A medical professional dedicated to public health and patient education.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image9": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-21-13-24-24-21_92460851df6f172a4592fca41cc2d2e6.jpg?alt=media&token=4bd33fee-5b88-4db4-ae48-f2892133f574",
+      "name": "Kavita Joshi",
+      "description": "Artist",
+      "mobile": "+91 87654 32109",
+      "longDescription": "A contemporary artist exploring modern themes through traditional mediums.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image10": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-21-18-22-25-75_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=ee03f843-d804-428b-a9cb-669dfb5fc484",
+      "name": "Sameer Khan",
+      "description": "Photographer",
+      "mobile": "+91 90000 10000",
+      "longDescription": "A fashion photographer known for his dynamic and expressive portfolio.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image11": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-21-21-11-12-40_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=e00dd269-f021-4254-bbf4-616d5a198f5e",
+      "name": "Aishwarya Iyer",
+      "description": "Writer",
+      "mobile": "+91 91122 33445",
+      "longDescription": "An author and journalist covering technology and culture in the modern age.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image12": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-04-11-04-59-79_40deb401b9ffe8e1df2f1cc5ba480b12.jpg?alt=media&token=e1817a36-776d-4f01-aa91-e4177b7c7848",
+      "name": "Deepak Menon",
+      "description": "Teacher",
+      "mobile": "+91 93344 55667",
+      "longDescription": "An educator committed to fostering critical thinking and curiosity in his students.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image13": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-24-07-27-04-04_6012fa4d4ddec268fc5c7112cbb265e7.jpg?alt=media&token=d004b7a0-c151-4fb2-97b6-19a061bc4e2d",
+      "name": "Neha Reddy",
+      "description": "Musician",
+      "mobile": "+91 95566 77889",
+      "longDescription": "A versatile musician and composer who blends classical and contemporary styles.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image14": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-04-13-45-08-37_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=94b6094a-8798-4281-aea9-1d803c39357d",
+      "name": "Aditya Rao",
+      "description": "Chef",
+      "mobile": "+91 97788 99001",
+      "longDescription": "A culinary expert specializing in international cuisine and molecular gastronomy.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image15": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-06-12-28-51-46_f9ee0578fe1cc94de7482bd41accb329.jpg?alt=media&token=40cd7027-e2b5-4351-a087-f971a7c864fa",
+      "name": "Pooja Chavan",
+      "description": "Scientist",
+      "mobile": "+91 88899 90001",
+      "longDescription": "A research scientist focused on renewable energy and environmental science.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image16": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-09-11-20-39-47_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=34fc3023-dfef-4513-96e1-0ae486812be8",
+      "name": "Suresh Nair",
+      "description": "Lawyer",
+      "mobile": "+91 81122 33445",
+      "longDescription": "A legal expert with a focus on civil rights and public interest litigation.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image17": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-11-22-19-38-48_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=0eeda586-2a71-4c42-8982-d7dd50d6c1c3",
+      "name": "Gayatri Patil",
+      "description": "Pilot",
+      "mobile": "+91 83344 55667",
+      "longDescription": "An experienced airline pilot with a flawless safety and performance record.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image18": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-11-22-50-40-82_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=67ba9857-c91d-46bb-aea9-2a0b16e08d5e",
+      "name": "Rajesh Singh",
+      "description": "Accountant",
+      "mobile": "+91 85566 77889",
+      "longDescription": "A chartered accountant providing expert financial advice to businesses.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image19": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-12-14-32-28-86_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=a0db3336-b9ec-4d03-b4b0-23371a85be9e",
+      "name": "Divya Kumar",
+      "description": "Journalist",
+      "mobile": "+91 87788 99001",
+      "longDescription": "An investigative journalist known for her in-depth reports and articles.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    },
+    "image20": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/my-image-slider-e1a96.firebasestorage.app/o/slider-images%2FScreenshot_2024-12-13-07-48-55-73_1c337646f29875672b5a61192b9010f9.jpg?alt=media&token=a6d3c289-7baf-44f9-aa6b-02f836e271c6",
+      "name": "Manish Sharma",
+      "description": "Entrepreneur",
+      "mobile": "+91 79988 77665",
+      "longDescription": "A serial entrepreneur who has successfully launched multiple tech startups.",
+      "rating": { "average": 0, "count": 0 },
+      "visits": 0
+    }
+  }
+}
