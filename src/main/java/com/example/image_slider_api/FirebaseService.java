@@ -142,10 +142,13 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+// ** IMPORT ClassPathResource **
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
+// ** REMOVE FileInputStream Import **
+// import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -153,45 +156,58 @@ import java.io.InputStream;
 public class FirebaseService {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
-    private FirebaseApp firebaseApp; // Store the initialized app instance
+    private FirebaseApp firebaseApp;
 
     @PostConstruct
     public void initialize() {
         logger.info("Attempting to initialize Firebase...");
 
-        try (InputStream serviceAccount = new FileInputStream("src/main/resources/serviceAccountKey.json")) {
+        try {
+            // ** THE FIX IS HERE **
+            // Use ClassPathResource to reliably load the file from the classpath
+            // This works correctly whether running from IDE or from a JAR file.
+            ClassPathResource resource = new ClassPathResource("serviceAccountKey.json");
 
-            logger.info("Service account key file found.");
-
-            FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setDatabaseUrl("https://my-image-slider-e1a96-default-rtdb.firebaseio.com") // Ensure this URL is correct
-                    .build();
-
-            // Check if the default app already exists before initializing
-            if (FirebaseApp.getApps().isEmpty()) {
-                this.firebaseApp = FirebaseApp.initializeApp(options); // Store the app instance
-                logger.info("Firebase application has been initialized successfully!");
-            } else {
-                this.firebaseApp = FirebaseApp.getInstance(); // Get the existing instance
-                logger.warn("Firebase application already initialized. Using existing instance.");
+            // Check if the resource actually exists before trying to open it
+            if (!resource.exists()) {
+                logger.error("!!! CRITICAL: serviceAccountKey.json not found in classpath (src/main/resources). !!!");
+                throw new IOException("serviceAccountKey.json not found in classpath.");
             }
 
-            // **NEW**: Add a check to confirm the default app exists after initialization attempt
-            if (FirebaseApp.getApps().isEmpty()) {
-                logger.error("!!! CRITICAL: Firebase initialization completed BUT no default app found. Check configuration. !!!");
-            } else {
-                logger.info("Confirmed Firebase default app instance exists.");
-            }
+            // Get the InputStream from the classpath resource
+            try (InputStream serviceAccount = resource.getInputStream()) {
+
+                logger.info("Service account key file found via classpath."); // Log: File found
+
+                FirebaseOptions options = new FirebaseOptions.Builder()
+                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setDatabaseUrl("https://my-image-slider-e1a96-default-rtdb.firebaseio.com/") // Ensure this URL is correct
+                        .build();
+
+                if (FirebaseApp.getApps().isEmpty()) {
+                    this.firebaseApp = FirebaseApp.initializeApp(options);
+                    logger.info("Firebase application has been initialized successfully!");
+                } else {
+                    this.firebaseApp = FirebaseApp.getInstance();
+                    logger.warn("Firebase application already initialized. Using existing instance.");
+                }
+
+                if (FirebaseApp.getApps().isEmpty()) {
+                    logger.error("!!! CRITICAL: Firebase initialization completed BUT no default app found. Check configuration. !!!");
+                } else {
+                    logger.info("Confirmed Firebase default app instance exists.");
+                }
+            } // InputStream is automatically closed here
 
         } catch (IOException e) {
-            logger.error("!!! CRITICAL: Firebase initialization failed - Key file issue. !!!", e);
+            // Log errors related to file access or credentials
+            logger.error("!!! CRITICAL: Firebase initialization failed - IO issue (likely key file or credentials). !!!", e);
         } catch (Exception e) {
+            // Catch any other unexpected errors
             logger.error("!!! CRITICAL: An unexpected error occurred during Firebase initialization !!!", e);
         }
     }
 
-    // Optional: Add a method to explicitly get the app if needed elsewhere, though getInstance() should work now.
     public FirebaseApp getFirebaseApp() {
         return firebaseApp;
     }
