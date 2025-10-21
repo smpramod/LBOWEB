@@ -18,14 +18,19 @@ COPY src ./src
 # Build the application JAR file
 RUN ./mvnw package -DskipTests
 
+
 # --- Second Stage: Create the final lightweight image ---
 FROM eclipse-temurin:17-jre-jammy
 
-# Set the working directory
 WORKDIR /app
 
 # Copy only the built JAR file from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
+
+# ** THE FIX IS HERE **
+# Copy the service account key from the build context root (where Render placed it)
+# into the current working directory (/app) inside the final image.
+COPY serviceAccountKey.json ./
 
 # Expose the port the application runs on
 EXPOSE 8080
