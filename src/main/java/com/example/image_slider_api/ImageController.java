@@ -779,6 +779,39 @@ public class ImageController {
         this.firebaseService = firebaseService;
     }
 
+    // Add this temporary method inside ImageController
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/") // Use your Netlify URL
+    @GetMapping("/api/image/{id}")
+    public ImageData getSingleImageData(@PathVariable String id) throws ExecutionException, InterruptedException {
+        logger.info("Fetching single image: {}", id);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("images/" + id + "/visits");
+        CompletableFuture<ImageData> future = new CompletableFuture<>();
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    ImageData imageData = dataSnapshot.getValue(ImageData.class);
+                    if (imageData != null) imageData.setId(dataSnapshot.getKey());
+                    future.complete(imageData);
+                } else {
+                    future.complete(null); // Complete with null if not found
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                future.completeExceptionally(databaseError.toException());
+            }
+        });
+        // Add a shorter timeout for testing
+        try {
+            return future.get(15, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger.error("!!! Timeout fetching single image {} !!!", id);
+            return null; // Return null on timeout
+        }
+    }
+
     @CrossOrigin(origins = "https://lbo4nw.netlify.app/") // Use your Netlify URL
     @GetMapping("/api/images")
     public List<ImageData> getImageData() throws ExecutionException, InterruptedException {
