@@ -599,6 +599,7 @@ public class ImageController {
     }
 }*/
 
+/*
 package com.example.image_slider_api;
 
 // ** ADDED IMPORTS **
@@ -725,6 +726,167 @@ public class ImageController {
     @PostMapping("/api/images/{id}/visit")
     public ResponseEntity<Void> incrementVisitCount(@PathVariable String id) {
         DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference("images/" + id + "/visits");
+
+        profileRef.runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                Integer currentVisits = mutableData.getValue(Integer.class);
+                if (currentVisits == null) { mutableData.setValue(1); }
+                else { mutableData.setValue(currentVisits + 1); }
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                if (databaseError != null) { System.err.println("Visit count transaction failed: " + databaseError.getMessage()); }
+                else if (committed) { System.out.println("Visit count updated successfully for ID: " + id); }
+                else { System.out.println("Visit count transaction aborted for ID: " + id); }
+            }
+        });
+
+        return ResponseEntity.ok().build();
+    }
+}
+Working with attempting but not displaying profiles
+*/
+package com.example.image_slider_api;
+
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+// ** ADDED IMPORTS FOR TIMEOUT **
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+@RestController
+public class ImageController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ImageController.class);
+    private final FirebaseService firebaseService;
+
+    @Autowired
+    public ImageController(FirebaseService firebaseService) {
+        this.firebaseService = firebaseService;
+    }
+
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/") // Use your Netlify URL
+    @GetMapping("/api/images")
+    public List<ImageData> getImageData() throws ExecutionException, InterruptedException {
+
+        logger.info("GET /api/images requested. Checking Firebase app...");
+        if (FirebaseApp.getApps().isEmpty()) {
+            logger.error("!!! FirebaseApp [DEFAULT] still doesn't exist when trying to get images. Initialization failed earlier. !!!");
+            return new ArrayList<>();
+        }
+        logger.info("Firebase app confirmed. Fetching data from '/images'...");
+
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("images");
+        CompletableFuture<List<ImageData>> future = new CompletableFuture<>();
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // ** ADDED LOGGING INSIDE CALLBACK **
+                logger.info("Firebase onDataChange received for /images.");
+                List<ImageData> imageList = new ArrayList<>();
+                if (dataSnapshot.exists()) {
+                    logger.info("Data snapshot for /images exists. Processing children...");
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        try {
+                            ImageData imageData = snapshot.getValue(ImageData.class);
+                            if (imageData != null) {
+                                imageData.setId(snapshot.getKey());
+                                imageList.add(imageData);
+                            } else {
+                                logger.warn("Null ImageData received for key: {}", snapshot.getKey());
+                            }
+                        } catch (DatabaseException e) {
+                            logger.error("Failed to convert Firebase data for key: {}. Error: {}", snapshot.getKey(), e.getMessage());
+                        }
+                    }
+                    logger.info("Finished processing {} children for /images.", imageList.size());
+                } else {
+                    logger.warn("Firebase data snapshot for /images does not exist or is empty.");
+                }
+                // Complete the future, signaling the main thread
+                future.complete(imageList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // ** ADDED LOGGING INSIDE CALLBACK **
+                logger.error("Firebase data fetch cancelled for /images.", databaseError.toException());
+                future.completeExceptionally(databaseError.toException());
+            }
+        });
+
+        try {
+            // ** ADDED TIMEOUT **
+            // Wait for a maximum of 30 seconds for the future to complete.
+            logger.info("Waiting for Firebase data fetch to complete (max 30s)...");
+            return future.get(30, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            // If it times out, log an error and return an empty list.
+            logger.error("!!! Firebase request for /images timed out after 30 seconds! Callback likely never triggered. Check Rules/Path/Data Size. !!!", e);
+            return new ArrayList<>(); // Return empty list instead of hanging
+        } catch (ExecutionException | InterruptedException e) {
+            logger.error("!!! Error waiting for Firebase data for /images !!!", e);
+            // Let Spring handle these exceptions for a 500 error, but log them first.
+            throw e;
+        }
+    }
+
+    // --- submitRating and incrementVisitCount methods remain the same ---
+    // Make sure they also have the correct @CrossOrigin(origins = "...") annotation
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
+    @PostMapping("/api/images/{id}/rate")
+    public ResponseEntity<Void> submitRating(@PathVariable String id, @RequestBody Map<String, Integer> payload) { Integer newRating = payload.get("rating");
+        if (newRating == null || newRating < 1 || newRating > 5) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference("images/" + id);
+
+        profileRef.runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                ImageData profile = mutableData.getValue(ImageData.class);
+                if (profile == null) { return Transaction.success(mutableData); }
+                Rating currentRating = profile.getRating();
+                if (currentRating == null) { currentRating = new Rating(0, 0); }
+                double totalPoints = currentRating.getAverage() * currentRating.getCount();
+                int newCount = currentRating.getCount() + 1;
+                double newAverage = (totalPoints + newRating) / newCount;
+                currentRating.setCount(newCount);
+                currentRating.setAverage(Math.round(newAverage * 10.0) / 10.0);
+                profile.setRating(currentRating);
+                mutableData.setValue(profile);
+                return Transaction.success(mutableData);
+            }
+
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                if (databaseError != null) { System.err.println("Rating transaction failed: " + databaseError.getMessage()); }
+                else if (committed) { System.out.println("Rating transaction committed successfully for ID: " + id); }
+                else { System.out.println("Rating transaction aborted for ID: " + id); }
+            }
+        });
+
+        return ResponseEntity.ok().build(); }
+
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
+    @PostMapping("/api/images/{id}/visit")
+    public ResponseEntity<Void> incrementVisitCount(@PathVariable String id) {  DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference("images/" + id + "/visits");
 
         profileRef.runTransaction(new Transaction.Handler() {
             @Override
