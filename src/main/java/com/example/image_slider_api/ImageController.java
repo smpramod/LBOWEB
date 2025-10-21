@@ -134,6 +134,7 @@ public class ImageController {
         return ResponseEntity.ok().build();
     }
 }*/
+/*
 
 package com.example.image_slider_api;
 
@@ -249,6 +250,122 @@ public class ImageController {
                 if (databaseError != null) {
                     System.out.println("Visit count transaction failed: " + databaseError.getMessage());
                 }
+            }
+        });
+
+        return ResponseEntity.ok().build();
+    }
+}
+*/
+
+package com.example.image_slider_api;
+
+import com.google.firebase.FirebaseApp; // Import FirebaseApp
+import com.google.firebase.database.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+@RestController
+public class ImageController {
+
+    @CrossOrigin
+    @GetMapping("/api/images")
+    public List<ImageData> getImageData() throws ExecutionException, InterruptedException {
+        // ** THE FIX IS HERE **: Explicitly get the default FirebaseApp instance first.
+        FirebaseApp firebaseApp = FirebaseApp.getInstance();
+        // Now get the database reference FROM that specific app instance.
+        DatabaseReference ref = FirebaseDatabase.getInstance(firebaseApp).getReference("images");
+
+        CompletableFuture<List<ImageData>> future = new CompletableFuture<>();
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<ImageData> imageList = new ArrayList<>();
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        ImageData imageData = snapshot.getValue(ImageData.class);
+                        if (imageData != null) {
+                            imageData.setId(snapshot.getKey());
+                            imageList.add(imageData);
+                        }
+                    }
+                }
+                future.complete(imageList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                future.completeExceptionally(databaseError.toException());
+            }
+        });
+
+        return future.get();
+    }
+
+    @CrossOrigin
+    @PostMapping("/api/images/{id}/rate")
+    public ResponseEntity<Void> submitRating(@PathVariable String id, @RequestBody Map<String, Integer> payload) {
+        Integer newRating = payload.get("rating");
+        if (newRating == null || newRating < 1 || newRating > 5) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // ** APPLY THE FIX HERE TOO **
+        FirebaseApp firebaseApp = FirebaseApp.getInstance();
+        DatabaseReference profileRef = FirebaseDatabase.getInstance(firebaseApp).getReference("images/" + id);
+
+        profileRef.runTransaction(new Transaction.Handler() {
+            // ... (rest of the transaction logic remains exactly the same)
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                ImageData profile = mutableData.getValue(ImageData.class);
+                if (profile == null) { return Transaction.success(mutableData); }
+                Rating currentRating = profile.getRating();
+                if (currentRating == null) { currentRating = new Rating(0, 0); }
+                double totalPoints = currentRating.getAverage() * currentRating.getCount();
+                int newCount = currentRating.getCount() + 1;
+                double newAverage = (totalPoints + newRating) / newCount;
+                currentRating.setCount(newCount);
+                currentRating.setAverage(Math.round(newAverage * 10.0) / 10.0);
+                profile.setRating(currentRating);
+                mutableData.setValue(profile);
+                return Transaction.success(mutableData);
+            }
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                if (databaseError != null) { System.out.println("Rating transaction failed: " + databaseError.getMessage()); }
+            }
+        });
+
+        return ResponseEntity.ok().build();
+    }
+
+    @CrossOrigin
+    @PostMapping("/api/images/{id}/visit")
+    public ResponseEntity<Void> incrementVisitCount(@PathVariable String id) {
+        // ** APPLY THE FIX HERE TOO **
+        FirebaseApp firebaseApp = FirebaseApp.getInstance();
+        DatabaseReference profileRef = FirebaseDatabase.getInstance(firebaseApp).getReference("images/" + id + "/visits");
+
+        profileRef.runTransaction(new Transaction.Handler() {
+            // ... (rest of the transaction logic remains exactly the same)
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                Integer currentVisits = mutableData.getValue(Integer.class);
+                if (currentVisits == null) { mutableData.setValue(1); }
+                else { mutableData.setValue(currentVisits + 1); }
+                return Transaction.success(mutableData);
+            }
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                if (databaseError != null) { System.out.println("Visit count transaction failed: " + databaseError.getMessage()); }
             }
         });
 
