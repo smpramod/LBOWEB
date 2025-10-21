@@ -43,37 +43,51 @@ package com.example.image_slider_api;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import org.slf4j.Logger; // Import Logger
+import org.slf4j.LoggerFactory; // Import LoggerFactory
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Service
 public class FirebaseService {
 
-    @PostConstruct
-    public void initialize() {
-        try {
-            // This looks for the key file you placed in the 'resources' folder.
-            FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/serviceAccountKey.json");
+    // Add a logger instance
+    private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
-            // These options configure the connection.
+    @PostConstruct // This ensures this method runs after the service is created
+    public void initialize() {
+        logger.info("Attempting to initialize Firebase..."); // Log: Starting initialization
+
+        // Use try-with-resources for automatic file closing
+        try (InputStream serviceAccount = new FileInputStream("src/main/resources/serviceAccountKey.json")) {
+
+            logger.info("Service account key file found."); // Log: File found
+
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    // **THE FIX IS HERE**: We are now explicitly telling Spring Boot to use the database that contains your 'images' data.
-                    .setDatabaseUrl("https://my-image-slider-e1a96-default-rtdb.firebaseio.com/")
+                    .setDatabaseUrl("https://my-image-slider-e1a96-default-rtdb.firebaseio.com") // Ensure this URL is correct
                     .build();
 
-            // This ensures the Firebase app is initialized only once.
+            // Check if the default app already exists before initializing
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);
-                System.out.println("Firebase has been initialized successfully!");
+                logger.info("Firebase application has been initialized successfully!"); // Log: Success
+            } else {
+                logger.warn("Firebase application already initialized."); // Log: Already initialized (shouldn't happen on first start)
             }
+
         } catch (IOException e) {
-            // This will print an error if the serviceAccountKey.json file is not found.
-            e.fillInStackTrace();
+            // Log the error if the file isn't found or credentials fail
+            logger.error("!!! CRITICAL: Firebase initialization failed !!!", e);
+            // Optionally re-throw or handle more gracefully depending on requirements
+            // throw new RuntimeException("Failed to initialize Firebase", e);
+        } catch (Exception e) {
+            // Catch any other unexpected errors during initialization
+            logger.error("!!! CRITICAL: An unexpected error occurred during Firebase initialization !!!", e);
         }
     }
 }
