@@ -142,13 +142,10 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// ** IMPORT ClassPathResource **
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-// ** REMOVE FileInputStream Import **
-// import java.io.FileInputStream;
+import java.io.FileInputStream; // Use FileInputStream again
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -162,53 +159,45 @@ public class FirebaseService {
     public void initialize() {
         logger.info("Attempting to initialize Firebase...");
 
-        try {
-            // ** THE FIX IS HERE **
-            // Use ClassPathResource to reliably load the file from the classpath
-            // This works correctly whether running from IDE or from a JAR file.
-            ClassPathResource resource = new ClassPathResource("serviceAccountKey.json");
+        // ** THE FIX IS HERE **
+        // Define the path where Render mounts the secret file.
+        String keyFilePath = "/etc/secrets/serviceAccountKey.json";
 
-            // Check if the resource actually exists before trying to open it
-            if (!resource.exists()) {
-                logger.error("!!! CRITICAL: serviceAccountKey.json not found in classpath (src/main/resources). !!!");
-                throw new IOException("serviceAccountKey.json not found in classpath.");
+        // Use FileInputStream with the correct path for Render's environment.
+        try (InputStream serviceAccount = new FileInputStream(keyFilePath)) {
+
+            logger.info("Service account key file found at: {}", keyFilePath); // Log: File found confirmation
+
+            FirebaseOptions options = new FirebaseOptions.Builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setDatabaseUrl("https://my-image-slider-e1a96-default-rtdb.firebaseio.com") // Ensure this URL is correct
+                    .build();
+
+            if (FirebaseApp.getApps().isEmpty()) {
+                this.firebaseApp = FirebaseApp.initializeApp(options);
+                logger.info("Firebase application has been initialized successfully!");
+            } else {
+                this.firebaseApp = FirebaseApp.getInstance();
+                logger.warn("Firebase application already initialized. Using existing instance.");
             }
 
-            // Get the InputStream from the classpath resource
-            try (InputStream serviceAccount = resource.getInputStream()) {
-
-                logger.info("Service account key file found via classpath."); // Log: File found
-
-                FirebaseOptions options = new FirebaseOptions.Builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                        .setDatabaseUrl("https://my-image-slider-e1a96-default-rtdb.firebaseio.com/") // Ensure this URL is correct
-                        .build();
-
-                if (FirebaseApp.getApps().isEmpty()) {
-                    this.firebaseApp = FirebaseApp.initializeApp(options);
-                    logger.info("Firebase application has been initialized successfully!");
-                } else {
-                    this.firebaseApp = FirebaseApp.getInstance();
-                    logger.warn("Firebase application already initialized. Using existing instance.");
-                }
-
-                if (FirebaseApp.getApps().isEmpty()) {
-                    logger.error("!!! CRITICAL: Firebase initialization completed BUT no default app found. Check configuration. !!!");
-                } else {
-                    logger.info("Confirmed Firebase default app instance exists.");
-                }
-            } // InputStream is automatically closed here
+            if (FirebaseApp.getApps().isEmpty()) {
+                logger.error("!!! CRITICAL: Firebase initialization completed BUT no default app found. Check configuration. !!!");
+            } else {
+                logger.info("Confirmed Firebase default app instance exists.");
+            }
 
         } catch (IOException e) {
-            // Log errors related to file access or credentials
-            logger.error("!!! CRITICAL: Firebase initialization failed - IO issue (likely key file or credentials). !!!", e);
+            // Log the error if the file isn't found at the specified path or credentials fail
+            logger.error("!!! CRITICAL: Firebase initialization failed - IO issue finding key at '{}'. Check Render secret file configuration and path. !!!", keyFilePath, e);
         } catch (Exception e) {
-            // Catch any other unexpected errors
+            // Catch any other unexpected errors during initialization
             logger.error("!!! CRITICAL: An unexpected error occurred during Firebase initialization !!!", e);
         }
     }
 
     public FirebaseApp getFirebaseApp() {
+        // You might need error handling here if firebaseApp is null
         return firebaseApp;
     }
 }
