@@ -1424,9 +1424,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const notificationBackBtn = document.getElementById('notification-back-button'); // The '×' button to close the notification panel
 
     // API Endpoints - The URLs for our backend services
-    const profilesApiUrl = 'http://localhost:8080/api/images';
+    /*const profilesApiUrl = 'http://localhost:8080/api/images';
     const notificationsApiUrl = 'http://localhost:8080/api/notifications';
-    const bannerApiUrl = 'http://localhost:8080/api/banners';
+    const bannerApiUrl = 'http://localhost:8080/api/banners';*/
+
+    // API Endpoints - Verify these URLs are correct
+    const profilesApiUrl = 'https://lboweb-api.onrender.com/api/images';
+    const notificationsApiUrl = 'https://lboweb-api.onrender.com/api/notifications';
+    const bannerApiUrl = 'https://lboweb-api.onrender.com/api/banners';
 
     const filterContainer = document.getElementById('filter-container');
     const sortSelect = document.getElementById('sort-select');

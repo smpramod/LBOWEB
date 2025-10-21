@@ -9,7 +9,7 @@ import java.util.List;
 @RestController
 public class NotificationController {
 
-    @CrossOrigin
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
     @GetMapping("/api/notifications")
     public List<Notification> getNotifications() {
         return Arrays.asList(

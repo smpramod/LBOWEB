@@ -494,7 +494,7 @@ import java.util.concurrent.ExecutionException;
 public class ImageController {
 
     // This method now has the full path and fetches data LIVE from your Firebase database.
-    @CrossOrigin
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
     @GetMapping("/api/images") // CORRECTED: The full path is now here.
     public List<ImageData> getImageData() throws ExecutionException, InterruptedException {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("images");
@@ -526,7 +526,7 @@ public class ImageController {
     }
 
     // This method correctly updates the rating in your Firebase database.
-    @CrossOrigin
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
     @PostMapping("/api/images/{id}/rate") // This path is now correct without the class-level mapping.
     public ResponseEntity<Void> submitRating(@PathVariable String id, @RequestBody Map<String, Integer> payload) {
         Integer newRating = payload.get("rating");
@@ -569,7 +569,7 @@ public class ImageController {
     }
 
     // This method correctly updates the visit count in your Firebase database.
-    @CrossOrigin
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
     @PostMapping("/api/images/{id}/visit") // This path is now correct.
     public ResponseEntity<Void> incrementVisitCount(@PathVariable String id) {
         DatabaseReference profileRef = FirebaseDatabase.getInstance().getReference("images/" + id + "/visits");

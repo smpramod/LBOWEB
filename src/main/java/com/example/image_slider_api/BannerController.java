@@ -9,7 +9,7 @@ import java.util.List;
 @RestController
 public class BannerController {
 
-    @CrossOrigin
+    @CrossOrigin(origins = "https://lbo4nw.netlify.app/")
     @GetMapping("/api/banners")
     public List<Banner> getBanners() {
         return Arrays.asList(
