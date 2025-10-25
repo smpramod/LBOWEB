@@ -1,19 +1,17 @@
 /*
 package com.example.image_slider_api;
 
-<<<<<<< HEAD
 import com.google.firebase.database.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-=======
-<<<<<<< HEAD
+
 import org.springframework.web.bind.annotation.CrossOrigin;
-=======
+
     
->>>>>>> a938f67f624a80f2fc18f36222cbc866efff386b
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
->>>>>>> 239697c7a4967f2afef79d5355415457be7246aa
+
 
 import java.util.ArrayList;
 import java.util.List;
